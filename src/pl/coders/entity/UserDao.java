@@ -2,25 +2,23 @@ package pl.coders.entity;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Arrays;
 
 public class UserDao {
 
-    private static final String CREATE =
-            "INSERT INTO users(username, email, password) VALUES (?, ?, ?)";
+    private static final String CREATE = "INSERT INTO users(username, email, password) VALUES (?, ?, ?)";
 
-    private static final String READ =
-            "UPDATE user SET username = ?, email = ?, password = ? where id = ?";
+    private static final String READ = "SELECT * FROM users where id = ?";
 
-    private static final String UPDATE =
-            "UPDATE user SET username = ?, email = ?, password = ? where id = ?";
+    private static final String UPDATE = "UPDATE users SET username = ?, email = ?, password = ? where id = ?";
 
-    private static final String DELETE =
-            "DELETE FROM user WHERE id = ?";
+    private static final String DELETE = "DELETE FROM users WHERE id = ?";
 
-    private static final String SHOW_ALL =
-            "SELECT * FROM users";
+    private static final String SHOW_ALL = "SELECT * FROM users";
 
     public String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
@@ -55,20 +53,19 @@ public class UserDao {
         try (Connection connection = DBUtil.getConnection()) {
             PreparedStatement preStmt = connection.prepareStatement(READ);
             preStmt.setInt(1, userID);
-            ResultSet resultSet = preStmt.getGeneratedKeys();
+
+            ResultSet resultSet = preStmt.executeQuery();
 
             if (resultSet.next()){
                 User user = new User();
                 user.setId(resultSet.getInt("id"));
-                user.setUserName("username");
-                user.setEmail("email");
-                user.setPassword("password");
+                user.setUserName(resultSet.getString("username"));
+                user.setEmail(resultSet.getString(("email")));
+                user.setPassword(resultSet.getString("password"));
                 return user;
             }
-
         } catch (SQLException exception) {
             exception.printStackTrace();
-
         }return null;
 }
 
